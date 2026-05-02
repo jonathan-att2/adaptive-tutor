@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מנוע הלמידה האדפטיבי | AI-Powered Learning</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #08080F;
+            --card-bg: #131320;
+            --border: #1E1E30;
+            --accent: #7C6BFF;
+            --accent-light: #B8A9FF;
+            --success: #4ADE80;
+            --danger: #F87171;
+            --warning: #FBBF24;
+            --text-main: #FFFFFF;
+            --text-dim: #A0A0B0;
+            --radius-card: 20px;
+            --radius-btn: 13px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Heebo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- Global Components --- */
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: var(--radius-btn);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            text-decoration: none;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 107, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: white;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #7C6BFF, #B8A9FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Navbar --- */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(8, 8, 15, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 0;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 900;
+            font-size: 1.4rem;
+            letter-spacing: -1px;
+        }
+
+        /* --- Hero Section --- */
+        #hero {
+            padding: 80px 0;
+            position: relative;
+            text-align: center;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .badge {
+            background: rgba(124, 107, 255, 0.1);
+            border: 1px solid var(--accent);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .subheadline {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+
+        .trust-bar {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Orbs Background */
+        .orb {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(124,107,255,0.15) 0%, rgba(8,8,15,0) 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(40px);
+            animation: orbMove 20s infinite alternate;
+        }
+
+        /* Mock UI Card (Desktop Only) */
+        .mock-card {
+            display: none;
+            position: absolute;
+            right: -100px;
+            top: 20%;
+            width: 280px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            text-align: right;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @media (min-width: 1100px) {
+            .mock-card { display: block; }
+        }
+
+        /* --- Problem/Solution --- */
+        section { padding: 80px 0; }
+        .section-label { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        .section-title { font-size: 2rem; margin-bottom: 40px; }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .p-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(248, 113, 113, 0.2); /* Danger tint */
+            padding: 25px;
+            border-radius: var(--radius-card);
+        }
+
+        .s-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(74, 222, 128, 0.2); /* Success tint */
+            padding: 25px;
+            border-radius: var(--radius-card);
+        }
+
+        .card-icon { font-size: 1.5rem; margin-bottom: 15px; display: block; }
+        .card-title { font-weight: 700; margin-bottom: 10px; }
+        .card-desc { font-size: 0.95rem; color: var(--text-dim); }
+
+        .arrow-divider {
+            text-align: center;
+            padding: 40px 0;
+            font-size: 2rem;
+            color: var(--accent);
+        }
+
+        /* --- How It Works --- */
+        .step-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        /* --- Features Grid --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .feature-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius-card);
+        }
+
+        /* --- Testimonials Ticker --- */
+        .ticker-wrap {
+            overflow: hidden;
+            background: var(--card-bg);
+            padding: 30px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ticker {
+            display: flex;
+            width: fit-content;
+            gap: 20px;
+            animation: tickerScroll 40s linear infinite;
+        }
+
+        .ticker:hover { animation-play-state: paused; }
+
+        .t-card {
+            width: 300px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius-card);
+            flex-shrink: 0;
+        }
+
+        /* --- Pricing --- */
+        .pricing-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .price-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 40px 30px;
+            border-radius: var(--radius-card);
+            text-align: center;
+            position: relative;
+        }
+
+        .price-card.featured {
+            border: 2px solid var(--accent);
+            transform: scale(1.02);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 50%;
+            transform: translateX(50%);
+            background: var(--accent);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .price-val { font-size: 2.5rem; font-weight: 900; margin: 20px 0; }
+        .price-val span { font-size: 1rem; color: var(--text-dim); }
+
+        /* --- Footer --- */
+        footer {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* --- APP OVERLAY --- */
+        #app-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 200;
+            display: none;
+            overflow-y: auto;
+            padding: 40px 0;
+        }
+
+        .close-app {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Screens */
+        .app-screen { display: none; max-width: 600px; margin: 0 auto; }
+        .app-screen.active { display: block; animation: slideIn 0.4s ease-out; }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-card);
+            padding: 60px 20px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover { border-color: var(--accent); background: rgba(124, 107, 255, 0.05); }
+
+        .icon-stack {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .format-chips { display: flex; gap: 8px; justify-content: center; margin-top: 20px; }
+        .chip { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+
+        textarea {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            color: white;
+            padding: 15px;
+            margin-top: 20px;
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        /* Quiz UI */
+        .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .progress-container { height: 6px; background: var(--border); border-radius: 10px; width: 100%; margin-bottom: 30px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); width: 0%; transition: 0.3s; }
+        
+        .answer-btn {
+            width: 100%;
+            text-align: right;
+            padding: 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            color: white;
+            margin-bottom: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+        }
+
+        .answer-btn:hover:not(:disabled) { border-color: var(--accent); }
+        .answer-btn .letter {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .answer-btn.correct { border-color: var(--success); background: rgba(74, 222, 128, 0.1); }
+        .answer-btn.wrong { border-color: var(--danger); background: rgba(248, 113, 113, 0.1); }
+        .faded { opacity: 0.38; }
+
+        /* Mastery Ring */
+        .mastery-ring { position: relative; width: 150px; height: 150px; margin: 0 auto 30px; }
+        .ring-svg { transform: rotate(-90deg); }
+        .ring-circle { fill: none; stroke: var(--accent); stroke-width: 10; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 1.1s ease-out; stroke-linecap: round; }
+        .score-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 900; }
+
+        /* Animations */
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes orbMove { 0% { transform: translate(0, 0); } 100% { transform: translate(100px, 50px); } }
+        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
+        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } } /* Adjusted for RTL */
+        @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Tablet/Desktop Tweaks */
+        @media (min-width: 768px) {
+            .card-grid { grid-template-columns: repeat(3, 1fr); }
+            .pricing-grid { flex-direction: row; }
+            .price-card { flex: 1; }
+            h1 { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="container nav-content">
+            <div class="logo gradient-text">ADAPTIVE TUTOR</div>
+            <button class="btn btn-primary open-app-trigger">התחל בחינם</button>
+        </div>
+    </nav>
+
+    <header id="hero">
+        <div class="orb" style="top: 10%; right: 10%;"></div>
+        <div class="orb" style="bottom: 10%; left: 10%; background: radial-gradient(circle, rgba(184,169,255,0.1) 0%, rgba(8,8,15,0) 70%);"></div>
+        
+        <div class="container">
+            <div class="badge">
+                <span class="dot"></span> מופעל על ידי Gemini 2.5 Pro
+            </div>
+            <h1>עצור לדקה.<br><span class="gradient-text">איך אתה לומד עכשיו?</span></h1>
+            <p class="subheadline">רוב הסטודנטים מבזבזים שעות על חומר שהם לא זוכרים. המנוע שלנו בונה לך חוויית למידה אישית — בתוך 60 שניות.</p>
+            
+            <div class="hero-ctas">
+                <button class="btn btn-primary open-app-trigger">🚀 התחל עכשיו בחינם</button>
+                <button class="btn btn-secondary">▶ ראה איך זה עובד</button>
+            </div>
+            
+            <div class="trust-bar">
+                <span>✓ ללא כרטיס אשראי</span>
+                <span>✓ עובד עם כל קובץ</span>
+                <span>✓ תוצאות מיידיות</span>
+            </div>
+        </div>
+
+        <div class="mock-card">
+            <div style="font-size: 0.7rem; color: var(--accent); margin-bottom: 5px;">שאלה 4 מתוך 10</div>
+            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">מהו העיקרון המרכזי של טקסונומיית בלום?</div>
+            <div style="background: var(--bg); border: 1px solid var(--accent); height: 30px; border-radius: 8px; margin-bottom: 5px;"></div>
+            <div style="background: var(--bg); border: 1px solid var(--border); height: 30px; border-radius: 8px;"></div>
+        </div>
+    </header>
+
+    <section id="problem">
+        <div class="container">
+            <span class="section-label">הבעיה</span>
+            <h2 class="section-title">למידה מסורתית שבורה</h2>
+            
+            <div class="card-grid">
+                <div class="p-card">
+                    <span class="card-icon">📚</span>
+                    <div class="card-title">קוראים ושוכחים</div>
+                    <p class="card-desc">70% מהחומר נשכח תוך 24 שעות ללא חזרה מובנית.</p>
+                </div>
+                <div class="p-card">
+                    <span class="card-icon">⏱</span>
+                    <div class="card-title">בזבוז זמן עצום</div>
+                    <p class="card-desc">סטודנטים ממוצעים מבזבזים 60% מזמן הלמידה בצורה לא יעילה.</p>
+                </div>
+                <div class="p-card">
+                    <span class="card-icon">😰</span>
+                    <div class="card-title">אין משוב אמיתי</div>
+                    <p class="card-desc">לא יודעים אם הם מוכנים — עד שזה מאוחר מדי.</p>
+                </div>
+            </div>
+
+            <div class="arrow-divider">↓</div>
+
+            <span class="section-label" style="color: var(--success);">הפתרון</span>
+            <h2 class="section-title">המנוע האדפטיבי שלנו משנה את הכל</h2>
+            
+            <div class="card-grid">
+                <div class="s-card">
+                    <span class="card-icon">🎯</span>
+                    <div class="card-title">מיקוד בזיכרון</div>
+                    <p class="card-desc">אלגוריתם שבונה שאלות ש"מכריחות" את המוח לזכור.</p>
+                </div>
+                <div class="s-card">
+                    <span class="card-icon">⚡</span>
+                    <div class="card-title">חיסכון אדיר</div>
+                    <p class="card-desc">לומדים רק את מה שלא יודעים. 60 שניות להכנה.</p>
+                </div>
+                <div class="s-card">
+                    <span class="card-icon">🏆</span>
+                    <div class="card-title">ביטחון מלא</div>
+                    <p class="card-desc">דוח שליטה אישי שמוכיח שאתה מוכן למבחן.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="ticker-wrap">
+        <div class="ticker" id="testimonial-ticker">
+            <div class="t-card">"העליתי סיכום של 40 עמוד ותוך דקה היו לי 25 שאלות מדויקות. עברתי את הבחינה בלי לקרוא שוב."<br><strong>- מאיה כ., סטודנטית</strong> ⭐⭐⭐⭐⭐</div>
+            <div class="t-card">"לימדתי את עצמי JavaScript בשבוע. בכיתי מהתוצאות."<br><strong>- אורי ג., מפתח ג'וניור</strong> ⭐⭐⭐⭐⭐</div>
+            <div class="t-card">"The only tool that actually tells me WHY I got it wrong."<br><strong>- Sarah M., MBA Student</strong> ⭐⭐⭐⭐⭐</div>
+            <div class="t-card">"המנוע זיהה בדיוק שאני חלש בנושא X. חסך לי ימים."<br><strong>- יונתן ל., עורך דין</strong> ⭐⭐⭐⭐⭐</div>
+            <div class="t-card">"העליתי סיכום של 40 עמוד ותוך דקה היו לי 25 שאלות מדויקות."<br><strong>- מאיה כ.</strong> ⭐⭐⭐⭐⭐</div>
+            <div class="t-card">"לימדתי את עצמי JavaScript בשבוע. בכיתי מהתוצאות."<br><strong>- אורי ג.</strong> ⭐⭐⭐⭐⭐</div>
+        </div>
+    </div>
+
+    <section id="pricing">
+        <div class="container">
+            <span class="section-label">מחיר</span>
+            <h2 class="section-title">בחר את המסלול שלך</h2>
+            
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h3>מתחיל</h3>
+                    <div class="price-val">₪0 <span>/חינם</span></div>
+                    <p>עד 5 קבצים בחודש<br>עד 10 שאלות לסשן</p>
+                    <button class="btn btn-secondary open-app-trigger" style="margin-top:20px; width:100%;">התחל בחינם</button>
+                </div>
+                <div class="price-card featured">
+                    <div class="popular-badge">הכי פופולרי</div>
+                    <h3>מקצועי</h3>
+                    <div class="price-val">₪29 <span>/חודש</span></div>
+                    <p style="text-decoration: line-through; color: var(--danger); font-size: 0.8rem;">₪59</p>
+                    <p>קבצים ללא הגבלה<br>דוח שליטה מלא</p>
+                    <button class="btn btn-primary open-app-trigger" style="margin-top:20px; width:100%;">ניסיון 7 ימים</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="container">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <div class="logo">ADAPTIVE TUTOR</div>
+            <div>© 2025 כל הזכויות שמורות</div>
+        </div>
+    </footer>
+
+    <div id="app-overlay">
+        <button class="close-app" id="close-app-btn">✕</button>
+        
+        <div class="container">
+            
+            <div id="screen-upload" class="app-screen active">
+                <h2 style="margin-bottom:10px;">העלה חומר לימודי</h2>
+                <p style="color:var(--text-dim); margin-bottom:30px;">המנוע ינתח את התוכן ויבנה לך קוויז מותאם אישית.</p>
+                
+                <div class="upload-zone" id="drop-zone">
+                    <div class="icon-stack">📄 ⬆️ 🖼️</div>
+                    <div style="font-weight:700;">גרור קובץ לכאן</div>
+                    <div style="font-size:0.8rem; color:var(--text-dim);">או לחץ לבחירה</div>
+                    <div class="format-chips">
+                        <span class="chip" style="background:#F87171;">PDF</span>
+                        <span class="chip" style="background:#7C6BFF;">DOCX</span>
+                        <span class="chip" style="background:#FBBF24;">TXT</span>
+                    </div>
+                </div>
+
+                <div style="text-align:center; color:var(--text-dim); font-size:0.8rem;">או</div>
+
+                <textarea id="paste-area" placeholder="הדבק כאן טקסט מהחומר הלימודי..."></textarea>
+
+                <div style="margin-top:30px; display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-dim);">מספר שאלות</label>
+                        <select id="qty-select" style="width:100%; padding:10px; border-radius:10px; background:var(--card-bg); color:white; border:1px solid var(--border);">
+                            <option value="5">5 שאלות</option>
+                            <option value="10" selected>10 שאלות</option>
+                            <option value="20">20 שאלות</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-dim);">רמת קושי</label>
+                        <select id="diff-select" style="width:100%; padding:10px; border-radius:10px; background:var(--card-bg); color:white; border:1px solid var(--border);">
+                            <option value="mixed">מעורב</option>
+                            <option value="easy">קל</option>
+                            <option value="hard">מאתגר</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="start-build-btn" style="width:100%; margin-top:30px; opacity:0.5;" disabled>🚀 התחל בניית חוויית למידה</button>
+            </div>
+
+            <div id="screen-loading" class="app-screen">
+                <div style="text-align:center; padding:100px 0;">
+                    <div class="orb" style="position:relative; width:100px; height:100px; margin:0 auto 30px; animation: pulse 1s infinite;"></div>
+                    <h3 id="loading-msg">מנתח את התוכן...</h3>
+                    <p style="color:var(--text-dim); margin-top:10px;">ה-AI בונה לך מסלול למידה אישי</p>
+                </div>
+            </div>
+
+            <div id="screen-quiz" class="app-screen">
+                <div class="quiz-top">
+                    <div id="q-counter">שאלה 1 מתוך 10</div>
+                    <div class="chip" id="difficulty-badge" style="background:var(--success);">בסיסי</div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="p-bar"></div>
+                </div>
+
+                <div id="question-container">
+                    <div class="chip" style="background:rgba(124,107,255,0.2); color:var(--accent-light); margin-bottom:10px;" id="concept-tag">מושג כללי</div>
+                    <h3 id="question-text" style="margin-bottom:30px;">טוען שאלה...</h3>
+                    
+                    <div id="options-list">
+                        </div>
+                </div>
+
+                <div id="feedback-card" style="display:none; margin-top:20px; padding:20px; border-radius:15px; border-right:4px solid var(--accent);">
+                    <h4 id="feedback-title"></h4>
+                    <p id="feedback-text" style="font-size:0.9rem; margin-top:5px;"></p>
+                    <div style="background:rgba(124,107,255,0.1); padding:10px; border-radius:10px; margin-top:10px; font-size:0.8rem;" id="tip-box">
+                        💡 <strong>טיפ:</strong> <span id="tip-text"></span>
+                    </div>
+                    <button class="btn btn-primary" id="next-q-btn" style="width:100%; margin-top:20px;">הבאה ←</button>
+                </div>
+            </div>
+
+            <div id="screen-results" class="app-screen">
+                <div style="text-align:center;">
+                    <div class="mastery-ring">
+                        <svg class="ring-svg" width="150" height="150">
+                            <circle cx="75" cy="75" r="70" stroke="#1E1E30" stroke-width="10" fill="none"></circle>
+                            <circle id="score-circle" class="ring-circle" cx="75" cy="75" r="70"></circle>
+                        </svg>
+                        <div class="score-display" id="score-num">0%</div>
+                    </div>
+                    <h2 id="result-label">מצוין! 🏆</h2>
+                    <p style="color:var(--text-dim); margin-bottom:40px;">סיימת את סבב הלמידה בהצלחה.</p>
+
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:40px;">
+                        <div style="background:var(--card-bg); padding:15px; border-radius:15px;">
+                            <div style="color:var(--success); font-weight:900;" id="stat-correct">0</div>
+                            <div style="font-size:0.7rem;">נכונות</div>
+                        </div>
+                        <div style="background:var(--card-bg); padding:15px; border-radius:15px;">
+                            <div style="color:var(--danger); font-weight:900;" id="stat-wrong">0</div>
+                            <div style="font-size:0.7rem;">טעויות</div>
+                        </div>
+                        <div style="background:var(--card-bg); padding:15px; border-radius:15px;">
+                            <div style="font-weight:900;" id="stat-total">0</div>
+                            <div style="font-size:0.7rem;">סה"כ</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:right;">
+                        <h4 style="margin-bottom:15px;">תוכנית שיפור אישית:</h4>
+                        <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:15px; margin-bottom:10px; display:flex; gap:10px;">
+                            <span style="color:var(--accent); font-weight:900;">1.</span>
+                            <span style="font-size:0.9rem;">חזור על המושגים שסימנו באדום.</span>
+                        </div>
+                        <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:15px; margin-bottom:10px; display:flex; gap:10px;">
+                            <span style="color:var(--accent); font-weight:900;">2.</span>
+                            <span style="font-size:0.9rem;">בצע סבב נוסף מחר בבוקר (Spaced Repetition).</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:15px; margin-top:40px;">
+                        <button class="btn btn-secondary" style="flex:1;" onclick="location.reload()">חומר חדש</button>
+                        <button class="btn btn-primary" style="flex:1;" id="restart-quiz-btn">שאלות חדשות</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* --- STATE MANAGEMENT --- */
+        let appData = {
+            content: "",
+            questions: [],
+            currentIndex: 0,
+            score: 0,
+            wrongAnswers: 0
+        };
+
+        /* --- UI TRIGGERS --- */
+        const overlay = document.getElementById('app-overlay');
+        const triggers = document.querySelectorAll('.open-app-trigger');
+        const closeBtn = document.getElementById('close-app-btn');
+        const pasteArea = document.getElementById('paste-area');
+        const startBtn = document.getElementById('start-build-btn');
+
+        triggers.forEach(t => t.addEventListener('click', () => {
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }));
+
+        closeBtn.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        pasteArea.addEventListener('input', () => {
+            startBtn.disabled = pasteArea.value.length < 20;
+            startBtn.style.opacity = startBtn.disabled ? 0.5 : 1;
+        });
+
+        /* --- SIMULATED AI GENERATION --- */
+        startBtn.addEventListener('click', () => {
+            showScreen('screen-loading');
+            
+            // Cycling messages
+            const msgs = ["מנתח את הטקסט...", "מזהה מושגי מפתח...", "בונה שאלות אדפטיביות...", "מכין דוח שליטה..."];
+            let i = 0;
+            const msgEl = document.getElementById('loading-msg');
+            const interval = setInterval(() => {
+                msgEl.innerText = msgs[i % msgs.length];
+                i++;
+            }, 2000);
+
+            // Simulate Generation
+            setTimeout(() => {
+                clearInterval(interval);
+                generateMockQuestions();
+                startQuiz();
+            }, 4000);
+        });
+
+        function generateMockQuestions() {
+            // In real app, this calls Gemini API via Prompt 9.1
+            const qty = parseInt(document.getElementById('qty-select').value);
+            appData.questions = [];
+            for(let i=0; i<qty; i++) {
+                appData.questions.push({
+                    id: i,
+                    concept: "מושג למידה #" + (i+1),
+                    text: `בהתבסס על החומר שהעלית, מהי המסקנה העיקרית לגבי נושא מס' ${i+1}?`,
+                    options: [
+                        { text: "זוהי התשובה הנכונה ביותר", isCorrect: true },
+                        { text: "אפשרות מסיחה שנשמעת הגיונית", isCorrect: false },
+                        { text: "מסיח המבוסס על טעות נפוצה", isCorrect: false },
+                        { text: "תשובה לא רלוונטית", isCorrect: false }
+                    ].sort(() => Math.random() - 0.5),
+                    explanation: "הסבר מפורט מה-AI על למה התשובה נכונה ואיך זה קשור להקשר הכללי של המסמך.",
+                    tip: "זכור את מילת המפתח 'אדפטיביות' כדי לזהות שאלות דומות בעתיד."
+                });
+            }
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        /* --- QUIZ LOGIC --- */
+        function startQuiz() {
+            appData.currentIndex = 0;
+            appData.score = 0;
+            appData.wrongAnswers = 0;
+            renderQuestion();
+            showScreen('screen-quiz');
+        }
+
+        function renderQuestion() {
+            const q = appData.questions[appData.currentIndex];
+            document.getElementById('q-counter').innerText = `שאלה ${appData.currentIndex + 1} מתוך ${appData.questions.length}`;
+            document.getElementById('p-bar').style.width = `${((appData.currentIndex) / appData.questions.length) * 100}%`;
+            document.getElementById('concept-tag').innerText = q.concept;
+            document.getElementById('question-text').innerText = q.text;
+            
+            const list = document.getElementById('options-list');
+            list.innerHTML = "";
+            document.getElementById('feedback-card').style.display = 'none';
+
+            const letters = ['א', 'ב', 'ג', 'ד'];
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerHTML = `<span class="letter">${letters[idx]}</span> <span>${opt.text}</span>`;
+                btn.onclick = () => handleAnswer(opt, btn);
+                list.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(opt, btn) {
+            const allBtns = document.querySelectorAll('.answer-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if(opt.isCorrect) {
+                btn.classList.add('correct');
+                appData.score++;
+                document.getElementById('feedback-title').innerText = "✅ תשובה נכונה!";
+                document.getElementById('feedback-card').style.borderColor = "var(--success)";
+            } else {
+                btn.classList.add('wrong');
+                appData.wrongAnswers++;
+                document.getElementById('feedback-title').innerText = "❌ לא מדויק";
+                document.getElementById('feedback-card').style.borderColor = "var(--danger)";
+                // Highlight correct one
+                allBtns.forEach((b, i) => {
+                    if(appData.questions[appData.currentIndex].options[i].isCorrect) b.classList.add('correct');
+                });
+            }
+
+            allBtns.forEach(b => {
+                if(!b.classList.contains('correct') && !b.classList.contains('wrong')) b.classList.add('faded');
+            });
+
+            const q = appData.questions[appData.currentIndex];
+            document.getElementById('feedback-text').innerText = q.explanation;
+            document.getElementById('tip-text').innerText = q.tip;
+            document.getElementById('feedback-card').style.display = 'block';
+        }
+
+        document.getElementById('next-q-btn').addEventListener('click', () => {
+            appData.currentIndex++;
+            if(appData.currentIndex < appData.questions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        /* --- RESULTS LOGIC --- */
+        function showResults() {
+            showScreen('screen-results');
+            const percent = Math.round((appData.score / appData.questions.length) * 100);
+            
+            // Mastery Ring Animation
+            const circle = document.getElementById('score-circle');
+            const offset = 440 - (440 * percent / 100);
+            setTimeout(() => {
+                circle.style.strokeDashoffset = offset;
+            }, 100);
+
+            document.getElementById('score-num').innerText = percent + "%";
+            document.getElementById('stat-correct').innerText = appData.score;
+            document.getElementById('stat-wrong').innerText = appData.wrongAnswers;
+            document.getElementById('stat-total').innerText = appData.questions.length;
+
+            const labels = [
+                { min: 90, txt: "מצוין! 🏆", color: "var(--success)" },
+                { min: 75, txt: "טוב מאוד! 🎯", color: "var(--accent)" },
+                { min: 60, txt: "סביר 📚", color: "var(--warning)" },
+                { min: 0, txt: "זקוק לחיזוק 💪", color: "var(--danger)" }
+            ];
+            const label = labels.find(l => percent >= l.min);
+            document.getElementById('result-label').innerText = label.txt;
+            document.getElementById('result-label').style.color = label.color;
+        }
+
+        document.getElementById('restart-quiz-btn').addEventListener('click', () => {
+            showScreen('screen-loading');
+            setTimeout(startQuiz, 1500);
+        });
+
+    </script>
+</body>
+</html>
