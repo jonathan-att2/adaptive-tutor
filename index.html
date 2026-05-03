@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 
     <style>
         :root {
@@ -68,7 +69,7 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(124, 107, 255, 0.3);
         }
@@ -239,32 +240,6 @@
             color: var(--accent);
         }
 
-        /* --- How It Works --- */
-        .step-flow {
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-            position: relative;
-        }
-
-        .step {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .step-num {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            flex-shrink: 0;
-        }
-
         /* --- Features Grid --- */
         .features-grid {
             display: grid;
@@ -358,7 +333,7 @@
             width: 100%;
             height: 100%;
             background: var(--bg);
-            z-index: 200;
+            z-index: 1000;
             display: none;
             overflow-y: auto;
             padding: 40px 0;
@@ -374,6 +349,12 @@
             padding: 10px;
             border-radius: 50%;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
         }
 
         /* Screens */
@@ -389,6 +370,7 @@
             transition: var(--transition);
             cursor: pointer;
             margin-bottom: 20px;
+            background: var(--card-bg);
         }
 
         .upload-zone:hover { border-color: var(--accent); background: rgba(124, 107, 255, 0.05); }
@@ -397,10 +379,11 @@
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            font-size: 2rem;
         }
 
         .format-chips { display: flex; gap: 8px; justify-content: center; margin-top: 20px; }
-        .chip { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+        .chip { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: white;}
 
         textarea {
             width: 100%;
@@ -461,7 +444,7 @@
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes orbMove { 0% { transform: translate(0, 0); } 100% { transform: translate(100px, 50px); } }
         @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
-        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } } /* Adjusted for RTL */
+        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
         @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         /* Tablet/Desktop Tweaks */
@@ -599,7 +582,7 @@
     <footer class="container">
         <div style="display:flex; justify-content: space-between; align-items: center;">
             <div class="logo">ADAPTIVE TUTOR</div>
-            <div>© 2025 כל הזכויות שמורות</div>
+            <div>© 2026 כל הזכויות שמורות</div>
         </div>
     </footer>
 
@@ -613,6 +596,7 @@
                 <p style="color:var(--text-dim); margin-bottom:30px;">המנוע ינתח את התוכן ויבנה לך קוויז מותאם אישית.</p>
                 
                 <div class="upload-zone" id="drop-zone">
+                    <input type="file" id="file-input" accept=".pdf,.txt,.docx,.png,.jpg" style="display:none;">
                     <div class="icon-stack">📄 ⬆️ 🖼️</div>
                     <div style="font-weight:700;">גרור קובץ לכאן</div>
                     <div style="font-size:0.8rem; color:var(--text-dim);">או לחץ לבחירה</div>
@@ -620,29 +604,44 @@
                         <span class="chip" style="background:#F87171;">PDF</span>
                         <span class="chip" style="background:#7C6BFF;">DOCX</span>
                         <span class="chip" style="background:#FBBF24;">TXT</span>
+                        <span class="chip" style="background:#4ADE80;">JPG/PNG</span>
                     </div>
                 </div>
 
-                <div style="text-align:center; color:var(--text-dim); font-size:0.8rem;">או</div>
+                <div id="file-preview" style="display:none; background:var(--card-bg); border:1px solid var(--border); padding:15px; border-radius:15px; margin-bottom:20px; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span id="file-icon" style="font-size:1.5rem;">📄</span>
+                        <div>
+                            <div id="file-name" style="font-weight:700; font-size:0.9rem;">name.pdf</div>
+                            <div id="file-size" style="color:var(--text-dim); font-size:0.75rem;">0 KB</div>
+                        </div>
+                    </div>
+                    <button id="remove-file-btn" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.2rem;">✕</button>
+                </div>
+
+                <div class="or-divider" style="text-align:center; color:var(--text-dim); font-size:0.8rem; position:relative; margin:20px 0;">
+                    <span style="background:var(--bg); padding:0 10px; position:relative; z-index:2;">או</span>
+                    <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:var(--border); z-index:1;"></div>
+                </div>
 
                 <textarea id="paste-area" placeholder="הדבק כאן טקסט מהחומר הלימודי..."></textarea>
 
                 <div style="margin-top:30px; display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                     <div>
-                        <label style="font-size:0.8rem; color:var(--text-dim);">מספר שאלות</label>
-                        <select id="qty-select" style="width:100%; padding:10px; border-radius:10px; background:var(--card-bg); color:white; border:1px solid var(--border);">
-                            <option value="5">5 שאלות</option>
-                            <option value="10" selected>10 שאלות</option>
-                            <option value="20">20 שאלות</option>
-                        </select>
+                        <label style="font-size:0.8rem; color:var(--text-dim); display:block; margin-bottom:8px;">מספר שאלות</label>
+                        <div style="display:flex; background:var(--card-bg); border:1px solid var(--border); border-radius:13px; overflow:hidden;">
+                            <button id="btn-minus" style="flex:1; background:none; border:none; color:white; padding:10px; cursor:pointer;">-</button>
+                            <div id="qty-display" style="flex:1; text-align:center; padding:10px; font-weight:700;">10</div>
+                            <button id="btn-plus" style="flex:1; background:none; border:none; color:white; padding:10px; cursor:pointer;">+</button>
+                        </div>
                     </div>
                     <div>
-                        <label style="font-size:0.8rem; color:var(--text-dim);">רמת קושי</label>
-                        <select id="diff-select" style="width:100%; padding:10px; border-radius:10px; background:var(--card-bg); color:white; border:1px solid var(--border);">
-                            <option value="mixed">מעורב</option>
-                            <option value="easy">קל</option>
-                            <option value="hard">מאתגר</option>
-                        </select>
+                        <label style="font-size:0.8rem; color:var(--text-dim); display:block; margin-bottom:8px;">רמת קושי</label>
+                        <div style="display:flex; gap:5px;" id="diff-pills">
+                            <button class="diff-pill active" data-val="mixed" style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--accent); background:rgba(124,107,255,0.1); color:white; cursor:pointer;">מעורב</button>
+                            <button class="diff-pill" data-val="easy" style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--border); background:var(--card-bg); color:white; cursor:pointer;">קל</button>
+                            <button class="diff-pill" data-val="hard" style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--border); background:var(--card-bg); color:white; cursor:pointer;">מאתגר</button>
+                        </div>
                     </div>
                 </div>
 
@@ -652,8 +651,13 @@
             <div id="screen-loading" class="app-screen">
                 <div style="text-align:center; padding:100px 0;">
                     <div class="orb" style="position:relative; width:100px; height:100px; margin:0 auto 30px; animation: pulse 1s infinite;"></div>
-                    <h3 id="loading-msg">מנתח את התוכן...</h3>
-                    <p style="color:var(--text-dim); margin-top:10px;">ה-AI בונה לך מסלול למידה אישי</p>
+                    <div style="display:flex; justify-content:center; gap:5px; margin-bottom:20px;">
+                        <span class="dot-anim" style="animation: pulse 1s infinite 0s;">●</span>
+                        <span class="dot-anim" style="animation: pulse 1s infinite 0.2s;">●</span>
+                        <span class="dot-anim" style="animation: pulse 1s infinite 0.4s;">●</span>
+                    </div>
+                    <h3 id="loading-msg">מחלץ טקסט מהמסמך...</h3>
+                    <p style="color:var(--text-dim); margin-top:10px;">ה-AI מנתח את התוכן ובונה שאלות</p>
                 </div>
             </div>
 
@@ -666,19 +670,19 @@
                     <div class="progress-bar" id="p-bar"></div>
                 </div>
 
-                <div id="question-container">
-                    <div class="chip" style="background:rgba(124,107,255,0.2); color:var(--accent-light); margin-bottom:10px;" id="concept-tag">מושג כללי</div>
-                    <h3 id="question-text" style="margin-bottom:30px;">טוען שאלה...</h3>
+                <div id="question-container" style="animation: slideIn 0.4s ease-out;">
+                    <div class="chip" style="background:rgba(124,107,255,0.2); color:var(--accent-light); margin-bottom:10px; display:inline-block;" id="concept-tag">מושג כללי</div>
+                    <h3 id="question-text" style="margin-bottom:30px; font-size:1.2rem; line-height:1.6;">טוען שאלה...</h3>
                     
                     <div id="options-list">
                         </div>
                 </div>
 
-                <div id="feedback-card" style="display:none; margin-top:20px; padding:20px; border-radius:15px; border-right:4px solid var(--accent);">
+                <div id="feedback-card" style="display:none; margin-top:20px; padding:20px; border-radius:15px; border-right:4px solid var(--accent); background:var(--card-bg); animation: slideIn 0.3s ease-out;">
                     <h4 id="feedback-title"></h4>
-                    <p id="feedback-text" style="font-size:0.9rem; margin-top:5px;"></p>
-                    <div style="background:rgba(124,107,255,0.1); padding:10px; border-radius:10px; margin-top:10px; font-size:0.8rem;" id="tip-box">
-                        💡 <strong>טיפ:</strong> <span id="tip-text"></span>
+                    <p id="feedback-text" style="font-size:0.95rem; margin-top:10px; color:white;"></p>
+                    <div style="background:rgba(124,107,255,0.1); padding:12px; border-radius:10px; margin-top:15px; font-size:0.85rem;" id="tip-box">
+                        💡 <strong>וו זיכרון:</strong> <span id="tip-text"></span>
                     </div>
                     <button class="btn btn-primary" id="next-q-btn" style="width:100%; margin-top:20px;">הבאה ←</button>
                 </div>
@@ -694,38 +698,46 @@
                         <div class="score-display" id="score-num">0%</div>
                     </div>
                     <h2 id="result-label">מצוין! 🏆</h2>
-                    <p style="color:var(--text-dim); margin-bottom:40px;">סיימת את סבב הלמידה בהצלחה.</p>
+                    
+                    <div id="streak-msg" style="background:rgba(251, 191, 36, 0.1); border:1px solid var(--warning); color:var(--warning); padding:8px 15px; border-radius:20px; display:inline-block; font-size:0.85rem; font-weight:700; margin-bottom:30px;">
+                        🔥 רצף מעולה! בוא שוב מחר
+                    </div>
 
                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:40px;">
-                        <div style="background:var(--card-bg); padding:15px; border-radius:15px;">
-                            <div style="color:var(--success); font-weight:900;" id="stat-correct">0</div>
-                            <div style="font-size:0.7rem;">נכונות</div>
+                        <div style="background:var(--card-bg); padding:15px; border-radius:15px; border:1px solid var(--border);">
+                            <div style="color:var(--success); font-weight:900; font-size:1.5rem;" id="stat-correct">0</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">נכונות</div>
                         </div>
-                        <div style="background:var(--card-bg); padding:15px; border-radius:15px;">
-                            <div style="color:var(--danger); font-weight:900;" id="stat-wrong">0</div>
-                            <div style="font-size:0.7rem;">טעויות</div>
+                        <div style="background:var(--card-bg); padding:15px; border-radius:15px; border:1px solid var(--border);">
+                            <div style="color:var(--danger); font-weight:900; font-size:1.5rem;" id="stat-wrong">0</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">טעויות</div>
                         </div>
-                        <div style="background:var(--card-bg); padding:15px; border-radius:15px;">
-                            <div style="font-weight:900;" id="stat-total">0</div>
-                            <div style="font-size:0.7rem;">סה"כ</div>
+                        <div style="background:var(--card-bg); padding:15px; border-radius:15px; border:1px solid var(--border);">
+                            <div style="color:var(--accent); font-weight:900; font-size:1.5rem;" id="stat-total">0</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim);">סה"כ</div>
                         </div>
                     </div>
 
-                    <div style="text-align:right;">
-                        <h4 style="margin-bottom:15px;">תוכנית שיפור אישית:</h4>
-                        <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:15px; margin-bottom:10px; display:flex; gap:10px;">
-                            <span style="color:var(--accent); font-weight:900;">1.</span>
-                            <span style="font-size:0.9rem;">חזור על המושגים שסימנו באדום.</span>
-                        </div>
-                        <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:15px; margin-bottom:10px; display:flex; gap:10px;">
-                            <span style="color:var(--accent); font-weight:900;">2.</span>
-                            <span style="font-size:0.9rem;">בצע סבב נוסף מחר בבוקר (Spaced Repetition).</span>
-                        </div>
+                    <div id="gaps-container" style="text-align:right; margin-bottom:30px; display:none;">
+                        <h4 style="margin-bottom:15px; font-size:0.9rem; color:var(--danger); text-transform:uppercase;">פערים שזוהו:</h4>
+                        <div id="gaps-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    </div>
+
+                    <div style="text-align:right; margin-bottom:30px;">
+                        <h4 style="margin-bottom:15px; font-size:0.9rem; color:var(--accent); text-transform:uppercase;">תוכנית שיפור (3 צעדים):</h4>
+                        <div id="action-plan-list">
+                            </div>
+                    </div>
+
+                    <div style="background:var(--card-bg); border:1px solid var(--accent); padding:20px; border-radius:15px; text-align:right; position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:0; right:0; background:var(--accent); color:white; padding:4px 12px; border-bottom-left-radius:10px; font-size:0.7rem; font-weight:700;">🔥 שאלת מאסטרי למחר</div>
+                        <h4 style="margin-top:15px; margin-bottom:10px; font-size:1rem;">הכן את עצמך לסשן הבא:</h4>
+                        <p id="challenge-q" style="font-size:0.9rem; color:var(--text-dim);"></p>
                     </div>
 
                     <div style="display:flex; gap:15px; margin-top:40px;">
-                        <button class="btn btn-secondary" style="flex:1;" onclick="location.reload()">חומר חדש</button>
-                        <button class="btn btn-primary" style="flex:1;" id="restart-quiz-btn">שאלות חדשות</button>
+                        <button class="btn btn-secondary" style="flex:1;" onclick="location.reload()">📂 חומר חדש</button>
+                        <button class="btn btn-primary" style="flex:1;" id="restart-quiz-btn">🔄 שאלות חדשות</button>
                     </div>
                 </div>
             </div>
@@ -736,21 +748,25 @@
     <script>
         /* --- STATE MANAGEMENT --- */
         let appData = {
-            content: "",
+            extractedText: "",
+            fileName: "",
             questions: [],
             currentIndex: 0,
             score: 0,
-            wrongAnswers: 0
+            wrongAnswers: [],
+            qty: 10,
+            difficulty: 'mixed'
         };
 
-        /* --- UI TRIGGERS --- */
+        /* --- UI TRIGGERS & OVERLAY --- */
         const overlay = document.getElementById('app-overlay');
         const triggers = document.querySelectorAll('.open-app-trigger');
         const closeBtn = document.getElementById('close-app-btn');
         const pasteArea = document.getElementById('paste-area');
         const startBtn = document.getElementById('start-build-btn');
-
-        triggers.forEach(t => t.addEventListener('click', () => {
+        
+        triggers.forEach(t => t.addEventListener('click', (e) => {
+            e.preventDefault();
             overlay.style.display = 'block';
             document.body.style.overflow = 'hidden';
         }));
@@ -760,49 +776,127 @@
             document.body.style.overflow = 'auto';
         });
 
-        pasteArea.addEventListener('input', () => {
-            startBtn.disabled = pasteArea.value.length < 20;
+        function checkReadyState() {
+            const hasText = pasteArea.value.trim().length > 20;
+            const hasFile = appData.extractedText.length > 0;
+            startBtn.disabled = !(hasText || hasFile);
             startBtn.style.opacity = startBtn.disabled ? 0.5 : 1;
+        }
+
+        pasteArea.addEventListener('input', () => {
+            appData.extractedText = pasteArea.value;
+            checkReadyState();
         });
 
-        /* --- SIMULATED AI GENERATION --- */
+        /* --- SETTINGS UI --- */
+        document.getElementById('btn-plus').onclick = () => { if(appData.qty < 50) appData.qty += 5; document.getElementById('qty-display').innerText = appData.qty; };
+        document.getElementById('btn-minus').onclick = () => { if(appData.qty > 5) appData.qty -= 5; document.getElementById('qty-display').innerText = appData.qty; };
+        
+        document.querySelectorAll('.diff-pill').forEach(pill => {
+            pill.onclick = (e) => {
+                document.querySelectorAll('.diff-pill').forEach(p => {
+                    p.classList.remove('active');
+                    p.style.background = 'var(--card-bg)';
+                    p.style.borderColor = 'var(--border)';
+                });
+                e.target.classList.add('active');
+                e.target.style.background = 'rgba(124,107,255,0.1)';
+                e.target.style.borderColor = 'var(--accent)';
+                appData.difficulty = e.target.getAttribute('data-val');
+            }
+        });
+
+        /* --- FILE UPLOAD & PDF.JS --- */
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const filePreview = document.getElementById('file-preview');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--accent)"; });
+        dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = "var(--border)");
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = "var(--border)";
+            if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        document.getElementById('remove-file-btn').onclick = () => {
+            appData.extractedText = "";
+            appData.fileName = "";
+            filePreview.style.display = 'none';
+            dropZone.style.display = 'block';
+            checkReadyState();
+        };
+
+        async function handleFile(file) {
+            appData.fileName = file.name;
+            document.getElementById('file-name').innerText = file.name;
+            document.getElementById('file-size').innerText = (file.size / 1024).toFixed(1) + " KB";
+            dropZone.style.display = 'none';
+            filePreview.style.display = 'flex';
+            
+            if(file.type === 'application/pdf') {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    let fullText = "";
+                    for(let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        fullText += content.items.map(item => item.str).join(" ") + " ";
+                    }
+                    appData.extractedText = fullText;
+                    checkReadyState();
+                } catch(err) {
+                    alert("שגיאה בקריאת קובץ ה-PDF. נסה להדביק טקסט במקום.");
+                }
+            } else {
+                appData.extractedText = "תוכן קובץ דמו: " + file.name;
+                checkReadyState();
+            }
+        }
+
+        /* --- ENGINE: GENERATE QUESTIONS FROM TEXT --- */
         startBtn.addEventListener('click', () => {
             showScreen('screen-loading');
             
-            // Cycling messages
-            const msgs = ["מנתח את הטקסט...", "מזהה מושגי מפתח...", "בונה שאלות אדפטיביות...", "מכין דוח שליטה..."];
+            const msgs = ["מנתח את הטקסט...", "מזהה מושגי מפתח...", "מרכיב שאלות אדפטיביות...", "מכין דוח שליטה..."];
             let i = 0;
             const msgEl = document.getElementById('loading-msg');
             const interval = setInterval(() => {
-                msgEl.innerText = msgs[i % msgs.length];
-                i++;
-            }, 2000);
+                msgEl.innerText = msgs[++i % msgs.length];
+            }, 3000);
 
-            // Simulate Generation
             setTimeout(() => {
                 clearInterval(interval);
-                generateMockQuestions();
+                generateSmartMockQuestions();
                 startQuiz();
-            }, 4000);
+            }, 4500);
         });
 
-        function generateMockQuestions() {
-            // In real app, this calls Gemini API via Prompt 9.1
-            const qty = parseInt(document.getElementById('qty-select').value);
+        function generateSmartMockQuestions() {
+            const text = appData.extractedText || pasteArea.value;
+            const words = text.split(/[\s,.\n]+/).filter(w => w.length > 4 && /^[\u0590-\u05FF]+$/.test(w));
+            
             appData.questions = [];
-            for(let i=0; i<qty; i++) {
+            for(let i=0; i<appData.qty; i++) {
+                let concept = words.length > 5 ? words[Math.floor(Math.random() * words.length)] : "מושג " + (i+1);
+                
                 appData.questions.push({
                     id: i,
-                    concept: "מושג למידה #" + (i+1),
-                    text: `בהתבסס על החומר שהעלית, מהי המסקנה העיקרית לגבי נושא מס' ${i+1}?`,
+                    concept: concept,
+                    text: `בהתבסס על החומר שהעלית, מהי המשמעות המרכזית של "${concept}" בהקשר שלנו?`,
                     options: [
-                        { text: "זוהי התשובה הנכונה ביותר", isCorrect: true },
-                        { text: "אפשרות מסיחה שנשמעת הגיונית", isCorrect: false },
-                        { text: "מסיח המבוסס על טעות נפוצה", isCorrect: false },
-                        { text: "תשובה לא רלוונטית", isCorrect: false }
+                        { text: `התשובה הנכונה ביותר לגבי ${concept} כפי שמופיע בטקסט`, isCorrect: true },
+                        { text: `אפשרות מסיחה שנשמעת הגיונית אך אינה נכונה`, isCorrect: false },
+                        { text: `מסיח המבוסס על טעות נפוצה הקשורה ל-${concept}`, isCorrect: false },
+                        { text: `הסבר אחר לגמרי שלא רלוונטי להקשר`, isCorrect: false }
                     ].sort(() => Math.random() - 0.5),
-                    explanation: "הסבר מפורט מה-AI על למה התשובה נכונה ואיך זה קשור להקשר הכללי של המסמך.",
-                    tip: "זכור את מילת המפתח 'אדפטיביות' כדי לזהות שאלות דומות בעתיד."
+                    explanation: `בטקסט המקורי, המושג ${concept} מתואר כחלק קריטי מהתהליך. טעות נפוצה היא לבלבל אותו עם מושגים דומים.`,
+                    tip: `קשר את המילה "${concept}" למילת המפתח "בסיס" כדי לזכור בקלות.`
                 });
             }
         }
@@ -816,7 +910,7 @@
         function startQuiz() {
             appData.currentIndex = 0;
             appData.score = 0;
-            appData.wrongAnswers = 0;
+            appData.wrongAnswers = [];
             renderQuestion();
             showScreen('screen-quiz');
         }
@@ -825,6 +919,12 @@
             const q = appData.questions[appData.currentIndex];
             document.getElementById('q-counter').innerText = `שאלה ${appData.currentIndex + 1} מתוך ${appData.questions.length}`;
             document.getElementById('p-bar').style.width = `${((appData.currentIndex) / appData.questions.length) * 100}%`;
+            
+            const badge = document.getElementById('difficulty-badge');
+            if(appData.difficulty === 'hard') { badge.innerText = "מאסטרי"; badge.style.background = "var(--danger)"; }
+            else if(appData.difficulty === 'easy') { badge.innerText = "בסיסי"; badge.style.background = "var(--success)"; }
+            else { badge.innerText = "אנליטי"; badge.style.background = "var(--warning)"; }
+
             document.getElementById('concept-tag').innerText = q.concept;
             document.getElementById('question-text').innerText = q.text;
             
@@ -837,12 +937,17 @@
                 const btn = document.createElement('button');
                 btn.className = 'answer-btn';
                 btn.innerHTML = `<span class="letter">${letters[idx]}</span> <span>${opt.text}</span>`;
-                btn.onclick = () => handleAnswer(opt, btn);
+                btn.onclick = () => handleAnswer(opt, btn, q);
                 list.appendChild(btn);
             });
+            
+            const container = document.getElementById('question-container');
+            container.style.animation = 'none';
+            container.offsetHeight; 
+            container.style.animation = null; 
         }
 
-        function handleAnswer(opt, btn) {
+        function handleAnswer(opt, btn, q) {
             const allBtns = document.querySelectorAll('.answer-btn');
             allBtns.forEach(b => b.disabled = true);
 
@@ -850,15 +955,16 @@
                 btn.classList.add('correct');
                 appData.score++;
                 document.getElementById('feedback-title').innerText = "✅ תשובה נכונה!";
+                document.getElementById('feedback-title').style.color = "var(--success)";
                 document.getElementById('feedback-card').style.borderColor = "var(--success)";
             } else {
                 btn.classList.add('wrong');
-                appData.wrongAnswers++;
+                appData.wrongAnswers.push(q);
                 document.getElementById('feedback-title').innerText = "❌ לא מדויק";
+                document.getElementById('feedback-title').style.color = "var(--danger)";
                 document.getElementById('feedback-card').style.borderColor = "var(--danger)";
-                // Highlight correct one
                 allBtns.forEach((b, i) => {
-                    if(appData.questions[appData.currentIndex].options[i].isCorrect) b.classList.add('correct');
+                    if(q.options[i].isCorrect) b.classList.add('correct');
                 });
             }
 
@@ -866,7 +972,6 @@
                 if(!b.classList.contains('correct') && !b.classList.contains('wrong')) b.classList.add('faded');
             });
 
-            const q = appData.questions[appData.currentIndex];
             document.getElementById('feedback-text').innerText = q.explanation;
             document.getElementById('tip-text').innerText = q.tip;
             document.getElementById('feedback-card').style.display = 'block';
@@ -884,9 +989,9 @@
         /* --- RESULTS LOGIC --- */
         function showResults() {
             showScreen('screen-results');
-            const percent = Math.round((appData.score / appData.questions.length) * 100);
+            const total = appData.questions.length;
+            const percent = Math.round((appData.score / total) * 100);
             
-            // Mastery Ring Animation
             const circle = document.getElementById('score-circle');
             const offset = 440 - (440 * percent / 100);
             setTimeout(() => {
@@ -895,25 +1000,68 @@
 
             document.getElementById('score-num').innerText = percent + "%";
             document.getElementById('stat-correct').innerText = appData.score;
-            document.getElementById('stat-wrong').innerText = appData.wrongAnswers;
-            document.getElementById('stat-total').innerText = appData.questions.length;
+            document.getElementById('stat-wrong').innerText = appData.wrongAnswers.length;
+            document.getElementById('stat-total').innerText = total;
 
             const labels = [
-                { min: 90, txt: "מצוין! 🏆", color: "var(--success)" },
-                { min: 75, txt: "טוב מאוד! 🎯", color: "var(--accent)" },
-                { min: 60, txt: "סביר 📚", color: "var(--warning)" },
-                { min: 0, txt: "זקוק לחיזוק 💪", color: "var(--danger)" }
+                { min: 90, txt: "מצוין! 🏆", color: "var(--success)", streak: "🔥 רצף מעולה! בוא שוב מחר" },
+                { min: 75, txt: "טוב מאוד! 🎯", color: "var(--accent)", streak: "⚡ כל סשן בונה את הרצף שלך" },
+                { min: 60, txt: "סביר 📚", color: "var(--warning)", streak: "💪 כמעט שם, נסה סבב נוסף" },
+                { min: 0, txt: "זקוק לחיזוק 💪", color: "var(--danger)", streak: "🧠 מטעויות לומדים הכי טוב" }
             ];
             const label = labels.find(l => percent >= l.min);
             document.getElementById('result-label').innerText = label.txt;
             document.getElementById('result-label').style.color = label.color;
+            document.getElementById('streak-msg').innerText = label.streak;
+
+            const gapsContainer = document.getElementById('gaps-container');
+            const gapsList = document.getElementById('gaps-list');
+            gapsList.innerHTML = "";
+            
+            if(appData.wrongAnswers.length > 0) {
+                gapsContainer.style.display = 'block';
+                const concepts = [...new Set(appData.wrongAnswers.map(q => q.concept))];
+                concepts.forEach(c => {
+                    const el = document.createElement('span');
+                    el.style.background = 'rgba(248, 113, 113, 0.1)';
+                    el.style.color = 'var(--danger)';
+                    el.style.padding = '4px 10px';
+                    el.style.borderRadius = '8px';
+                    el.style.fontSize = '0.8rem';
+                    el.innerText = "🔴 " + c;
+                    gapsList.appendChild(el);
+                });
+            } else {
+                gapsContainer.style.display = 'none';
+            }
+
+            const planList = document.getElementById('action-plan-list');
+            planList.innerHTML = `
+                <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:12px; margin-bottom:10px; display:flex; gap:12px; align-items:center;">
+                    <span style="background:var(--accent); color:white; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:900; flex-shrink:0;">1</span>
+                    <span style="font-size:0.9rem;">${percent < 100 ? 'חזור על המושגים המסומנים באדום למעלה.' : 'סכם את החומר לחבר כדי לקבע את הידע.'}</span>
+                </div>
+                <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:12px; margin-bottom:10px; display:flex; gap:12px; align-items:center;">
+                    <span style="background:var(--accent); color:white; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:900; flex-shrink:0;">2</span>
+                    <span style="font-size:0.9rem;">בצע סבב שאלות נוסף מחר (Spaced Repetition).</span>
+                </div>
+                <div style="background:rgba(124,107,255,0.1); padding:15px; border-radius:12px; margin-bottom:10px; display:flex; gap:12px; align-items:center;">
+                    <span style="background:var(--accent); color:white; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:900; flex-shrink:0;">3</span>
+                    <span style="font-size:0.9rem;">נסה לפתור את שאלת המאסטרי (למטה) ללא חומר עזר.</span>
+                </div>
+            `;
+
+            const challenge = appData.wrongAnswers.length > 0 ? 
+                appData.wrongAnswers[0].text : 
+                `הסבר במילים שלך את החשיבות של "${appData.questions[0].concept}".`;
+            document.getElementById('challenge-q').innerText = challenge;
         }
 
         document.getElementById('restart-quiz-btn').addEventListener('click', () => {
             showScreen('screen-loading');
+            generateSmartMockQuestions(); 
             setTimeout(startQuiz, 1500);
         });
-
     </script>
 </body>
 </html>
